@@ -1,0 +1,13 @@
+{
+  "watch": ["*.js", "botType/*.js", "config/*.js"],
+  "ext": "js,json,env",
+  "ignore": [
+    "node_modules/",
+    "*.test.js",
+    "logs/*",
+    ".git",
+    "public/*"
+  ],
+  "delay": "500",
+  "verbose": true
+}

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dify2OpenAI Gateway</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1, h2, h3 {
+        color: #2c3e50;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      code {
+        font-family: monospace;
+        background: #f1f1f1;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+      .config-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+      .config-table th, .config-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      .config-table th {
+        background: #f8f9fa;
+      }
+      .example {
+        background: #fff;
+        border: 1px solid #e1e4e8;
+        border-radius: 6px;
+        padding: 15px;
+        margin: 10px 0;
+      }
+      .example h4 {
+        margin-top: 0;
+        color: #0366d6;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .tabs {
+        margin: 20px 0;
+        border-bottom: 2px solid #e1e4e8;
+      }
+      .tab {
+        display: inline-block;
+        padding: 8px 16px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        margin-bottom: -2px;
+      }
+      .tab.active {
+        border-bottom: 2px solid #0366d6;
+        color: #0366d6;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Dify2OpenAI Gateway</h1>
+    <p>Dify2OpenAI 是一个将 Dify 应用程序转换为 OpenAI API 接口的网关服务，使您可以使用 OpenAI API 兼容的方式与 Dify 应用进行交互。</p>
+
+    <h2>配置参数</h2>
+    <table class="config-table">
+      <tr>
+        <th>参数</th>
+        <th>说明</th>
+        <th>示例</th>
+      </tr>
+      <tr>
+        <td>DIFY_API_URL</td>
+        <td>Dify 服务的 API 基础 URL</td>
+        <td>https://cloud.dify.ai/v1</td>
+      </tr>
+      <tr>
+        <td>API_KEY</td>
+        <td>Dify 应用的 API 密钥</td>
+        <td>app-xxxx</td>
+      </tr>
+      <tr>
+        <td>BOT_TYPE</td>
+        <td>应用类型（Chat、Completion、Workflow）</td>
+        <td>Chat</td>
+      </tr>
+      <tr>
+        <td>INPUT_VARIABLE</td>
+        <td>输入变量名称（仅 Workflow 类型需要）</td>
+        <td>input</td>
+      </tr>
+      <tr>
+        <td>OUTPUT_VARIABLE</td>
+        <td>输出变量名称（仅 Workflow 类型需要）</td>
+        <td>output</td>
+      </tr>
+    </table>
+
+    <h2>接入方式</h2>
+    
+    <h3>方式一：所有配置在 Authorization Header 中</h3>
+    <p><strong>Authorization Header 格式：</strong></p>
+    <pre>Authorization: Bearer DIFY_API_URL|API_KEY|BOT_TYPE|INPUT_VARIABLE|OUTPUT_VARIABLE</pre>
+    <p>示例：</p>
+    <pre>Authorization: Bearer https://cloud.dify.ai/v1|app-xxxx|Chat</pre>
+    <p><code>model</code> 参数设置为 <code>dify</code></p>
+
+    <div class="example">
+      <h4>基础对话示例</h4>
+      <pre>
+curl http://localhost:3099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer https://cloud.dify.ai/v1|app-xxxx|Chat" \
+  -X POST \
+  -d '{
+    "model": "dify",
+    "stream": true,
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "你好"
+      }
+    ]
+  }'</pre>
+    </div>
+
+    <div class="example">
+      <h4>带图片的对话示例</h4>
+      <pre>
+curl http://localhost:3099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer https://cloud.dify.ai/v1|app-xxxx|Chat" \
+  -X POST \
+  -d '{
+    "model": "dify",
+    "stream": true,
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          "请分析这张图片。",
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "https://example.com/image.jpg"
+            }
+          }
+        ]
+      }
+    ]
+  }'</pre>
+    </div>
+
+    <h3>方式二：Authorization Header 传递 API_KEY，model 参数传递其他配置</h3>
+    <p><strong>Authorization Header 格式：</strong></p>
+    <pre>Authorization: Bearer API_KEY</pre>
+    <p><strong>model 参数格式：</strong></p>
+    <pre>"model": "dify|BOT_TYPE|DIFY_API_URL|INPUT_VARIABLE|OUTPUT_VARIABLE"</pre>
+
+    <div class="example">
+      <h4>基础对话示例</h4>
+      <pre>
+curl http://localhost:3099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer app-xxxx" \
+  -X POST \
+  -d '{
+    "model": "dify|Chat|https://cloud.dify.ai/v1",
+    "stream": true,
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "你好"
+      }
+    ]
+  }'</pre>
+    </div>
+
+    <div class="example">
+      <h4>带图片的对话示例</h4>
+      <pre>
+curl http://localhost:3099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer app-xxxx" \
+  -X POST \
+  -d '{
+    "model": "dify|Chat|https://cloud.dify.ai/v1",
+    "stream": true,
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          "请分析这张图片。",
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "https://example.com/image.jpg"
+            }
+          }
+        ]
+      }
+    ]
+  }'</pre>
+    </div>
+
+    <h3>方式三：Authorization Header 传递 DIFY_API_URL，model 参数传递其他配置</h3>
+    <p><strong>Authorization Header 格式：</strong></p>
+    <pre>Authorization: Bearer DIFY_API_URL</pre>
+    <p><strong>model 参数格式：</strong></p>
+    <pre>"model": "dify|API_KEY|BOT_TYPE|INPUT_VARIABLE|OUTPUT_VARIABLE"</pre>
+
+    <div class="example">
+      <h4>基础对话示例</h4>
+      <pre>
+curl http://localhost:3099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer https://cloud.dify.ai/v1" \
+  -X POST \
+  -d '{
+    "model": "dify|app-xxxx|Chat",
+    "stream": true,
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "你好"
+      }
+    ]
+  }'</pre>
+    </div>
+
+    <div class="example">
+      <h4>带图片的对话示例</h4>
+      <pre>
+curl http://localhost:3099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer https://cloud.dify.ai/v1" \
+  -X POST \
+  -d '{
+    "model": "dify|app-xxxx|Chat",
+    "stream": true,
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          "请分析这张图片。",
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "https://example.com/image.jpg"
+            }
+          }
+        ]
+      }
+    ]
+  }'</pre>
+    </div>
+
+    <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; color: #666;">
+      <p> 2024 Dify2OpenAI - <a href="https://github.com/onenov/Dify2OpenAI" style="color: #007bff; text-decoration: none;">GitHub</a></p>
+    </footer>
+  </body>
+</html>

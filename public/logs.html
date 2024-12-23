@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时日志查看器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .log-container {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            height: 600px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+        }
+        .log-entry pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        .error { color: #ff6b6b; }
+        .warn { color: #ffd93d; }
+        .info { color: #6bff6b; }
+        .debug { color: #6b6bff; }
+        select, button {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .controls {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .status.connected {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .status.disconnected {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>实时日志查看器</h1>
+            <div class="controls">
+                <select id="logFile">
+                    <option value="">选择日志文件...</option>
+                </select>
+                <button onclick="connectWebSocket()">连接</button>
+                <button onclick="disconnectWebSocket()">断开</button>
+                <button onclick="clearLogs()">清除</button>
+                <div id="status" class="status disconnected">未连接</div>
+            </div>
+        </div>
+        <div id="logContainer" class="log-container"></div>
+    </div>
+
+    <script>
+        let ws = null;
+        const logContainer = document.getElementById('logContainer');
+        const logFileSelect = document.getElementById('logFile');
+        const statusDiv = document.getElementById('status');
+
+        // 获取日志文件列表
+        async function fetchLogFiles() {
+            try {
+                const response = await fetch('/logs');
+                const data = await response.json();
+                logFileSelect.innerHTML = '<option value="">选择日志文件...</option>';
+                data.files.forEach(file => {
+                    const option = document.createElement('option');
+                    option.value = file.name;
+                    option.textContent = file.name;
+                    logFileSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('获取日志文件列表失败:', error);
+            }
+        }
+
+        // 连接WebSocket
+        function connectWebSocket() {
+            const filename = logFileSelect.value;
+            if (!filename) {
+                alert('请选择日志文件');
+                return;
+            }
+
+            disconnectWebSocket();
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/logs?filename=${filename}`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                statusDiv.textContent = '已连接';
+                statusDiv.className = 'status connected';
+            };
+
+            ws.onclose = () => {
+                statusDiv.textContent = '未连接';
+                statusDiv.className = 'status disconnected';
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'history') {
+                    // 处理历史数据
+                    data.data.forEach(addLogEntry);
+                } else {
+                    // 处理实时数据
+                    addLogEntry(data);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket错误:', error);
+                statusDiv.textContent = '连接错误';
+                statusDiv.className = 'status disconnected';
+            };
+        }
+
+        // 断开WebSocket连接
+        function disconnectWebSocket() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        // 添加日志条目
+        function addLogEntry(data) {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${data.level || data.type || 'info'}`;
+            
+            const content = document.createElement('pre');
+            content.textContent = JSON.stringify(data, null, 2);
+            entry.appendChild(content);
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 清除日志
+        function clearLogs() {
+            logContainer.innerHTML = '';
+        }
+
+        // 页面加载时获取日志文件列表
+        fetchLogFiles();
+
+        // 页面关闭时断开连接
+        window.onbeforeunload = disconnectWebSocket;
+    </script>
+</body>
+</html>
