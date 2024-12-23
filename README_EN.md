@@ -2,7 +2,9 @@
 
 # Dify2OpenAI Gateway
 
-English | [简体中文](./README.md)
+[![爱发电](https://afdian.moeci.com/13/badge.svg)](https://afdian.com/@orence)
+<a href="./README.md"><img alt="简体中文版自述文件" src="https://img.shields.io/badge/简体中文-d9d9d9"></a>
+<a href="./README_EN.md"><img alt="README in English" src="https://img.shields.io/badge/English-d9d9d9"></a>
 
 **Dify2OpenAI** is a gateway service that transforms Dify applications into OpenAI API-compatible interfaces, allowing you to access Dify's LLM, Knowledge Base, Tools, and Workflows using OpenAI API-compatible methods.
 
@@ -330,3 +332,17 @@ For performance, the logging system:
 - Uses buffered writing to reduce I/O operations
 - Writes asynchronously to avoid blocking the main thread
 - Automatically cleans up expired logs to control disk usage
+
+---
+
+## Support
+
+WeChat：**`AOKIEO`** ｜ Mail: **`dev@orence.ai`**
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Thank you for using Dify2OpenAI! If you encounter any problems during use, please feel free to ask and we will assist you as soon as possible.**

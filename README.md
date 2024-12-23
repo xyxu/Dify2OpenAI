@@ -2,7 +2,9 @@
 
 # Dify2OpenAI Gateway
 
-[English](./README_EN.md) | 简体中文
+[![爱发电](https://afdian.moeci.com/13/badge.svg)](https://afdian.com/@orence)
+<a href="./README.md"><img alt="简体中文版自述文件" src="https://img.shields.io/badge/简体中文-d9d9d9"></a>
+<a href="./README_EN.md"><img alt="README in English" src="https://img.shields.io/badge/English-d9d9d9"></a>
 
 **Dify2OpenAI** 是一个将 Dify 应用程序转换为 OpenAI API 接口的网关服务，使您可以使用 OpenAI API 兼容的方式访问 Dify 的 LLM、知识库、工具和工作流程。
 
@@ -470,6 +472,9 @@ curl http://localhost:3099/v1/chat/completions \
 - **安全性**：请妥善保管您的 `API_KEY`，不要泄露给无关人员。
 
 ---
+## 联系
+
+WeChat：**`AOKIEO`** ｜ Mail: **`dev@orence.ai`**
 
 ## License
 
