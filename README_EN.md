@@ -2,7 +2,7 @@
 
 # Dify2OpenAI Gateway
 
-English | [简体中文](./readme.md)
+English | [简体中文](./README.md)
 
 **Dify2OpenAI** is a gateway service that transforms Dify applications into OpenAI API-compatible interfaces, allowing you to access Dify's LLM, Knowledge Base, Tools, and Workflows using OpenAI API-compatible methods.
 
