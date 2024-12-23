@@ -30,6 +30,8 @@ English | [简体中文](./readme.md)
 ### Installation
 
 ```bash
+git clone https://github.com/onenov/Dify2OpenAI.git
+cd Dify2OpenAI
 npm install
 ```
 
