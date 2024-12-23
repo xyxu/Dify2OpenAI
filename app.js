@@ -113,21 +113,22 @@ function parseConfig(authHeader, modelParam) {
 
 const app = express();
 
-// 配置静态文件服务
-app.use(express.static('public'));
-
 // 配置 CORS 中间件，允许所有跨域请求
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "*");
   res.header("Access-Control-Allow-Credentials", true);
+  res.header("Access-Control-Max-Age", "86400");
 
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
   next();
 });
+
+// 配置静态文件服务
+app.use(express.static('public'));
 
 // 配置请求体解析
 app.use(express.json({ limit: "100mb" }));
@@ -143,15 +144,6 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-  res.set({
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "*",
-    "Access-Control-Max-Age": "86400",
-  });
-  if (req.method === "OPTIONS") {
-    return res.status(204).end();
-  }
   if (process.env.NODE_ENV === 'development') {
     log('info', 'Incoming request', {
       method: req.method,
