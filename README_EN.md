@@ -29,7 +29,7 @@
 
 ## Quick Start
 
-### Installation
+### Installation & Startup
 
 ```bash
 git clone https://github.com/onenov/Dify2OpenAI.git
@@ -40,37 +40,67 @@ npm install
 ### Start Service
 
 Using PM2 (Recommended):
+
 ```bash
-npm start
+# Directly using PM2 command
+pm2 start ecosystem.config.cjs
+
+# Or using npm scripts
+npm run pm2:start
 ```
 
-Or start directly:
+Or start normally:
+
 ```bash
-node app.js
+npm run start
 ```
 
 The service will run on `http://localhost:3099` by default.
 
-### PM2 Commands
+### PM2 Common Commands
 
-Start service:
-```bash
-pm2 start ecosystem.config.js
-```
+Manage directly with PM2:
 
-View logs:
 ```bash
+# View application status
+pm2 list
+
+# View logs
 pm2 logs
+
+# Restart application
+pm2 restart dify2openai
+
+# Stop application
+pm2 stop dify2openai
+
+# Delete application
+pm2 delete dify2openai
+
+# Monitor application
+pm2 monit
 ```
 
-Stop service:
-```bash
-pm2 stop ecosystem.config.js
-```
+Manage using npm scripts:
 
-Restart service:
 ```bash
-pm2 restart ecosystem.config.js
+# Start application
+npm run pm2:start
+
+# View logs
+npm run pm2:logs
+
+# Restart application
+npm run pm2:restart
+
+# Stop application
+npm run pm2:stop
+
+# Delete application
+npm run pm2:delete
+
+# Monitor application
+npm run pm2:monit
 ```
 
 ---
@@ -98,11 +128,13 @@ Note: Vercel serverless functions have a 10-second timeout limit.
 ### Method One: All Configurations in Authorization Header
 
 **Authorization Header Format:**
+
 ```
 Authorization: Bearer DIFY_API_URL|API_KEY|BOT_TYPE|INPUT_VARIABLE|OUTPUT_VARIABLE
 ```
 
 Example:
+
 ```
 Authorization: Bearer https://cloud.dify.ai/v1|app-xxxx|Chat
 ```
@@ -112,16 +144,19 @@ Set `model` parameter to `dify`
 ### Method Two: API_KEY in Authorization Header
 
 **Authorization Header Format:**
+
 ```
 Authorization: Bearer API_KEY
 ```
 
 **Model Parameter Format:**
+
 ```
 "model": "dify|BOT_TYPE|DIFY_API_URL|INPUT_VARIABLE|OUTPUT_VARIABLE"
 ```
 
 Example:
+
 ```
 Authorization: Bearer app-xxxx
 "model": "dify|Chat|https://cloud.dify.ai/v1"
@@ -130,16 +165,19 @@ Authorization: Bearer app-xxxx
 ### Method Three: DIFY_API_URL in Authorization Header
 
 **Authorization Header Format:**
+
 ```
 Authorization: Bearer DIFY_API_URL
 ```
 
 **Model Parameter Format:**
+
 ```
 "model": "dify|API_KEY|BOT_TYPE|INPUT_VARIABLE|OUTPUT_VARIABLE"
 ```
 
 Example:
+
 ```
 Authorization: Bearer https://cloud.dify.ai/v1
 "model": "dify|app-xxxx|Chat"
@@ -147,7 +185,9 @@ Authorization: Bearer https://cloud.dify.ai/v1
 
 ## Examples
 
-### Basic Chat
+### Basic Chat Examples
+
+#### Method One
 
 ```bash
 curl http://localhost:3099/v1/chat/completions \
@@ -170,7 +210,55 @@ curl http://localhost:3099/v1/chat/completions \
   }'
 ```
 
-### Chat with Image
+#### Method Two
+
+```bash
+curl http://localhost:3099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer app-xxxx" \
+  -X POST \
+  -d '{
+    "model": "dify|Chat|https://cloud.dify.ai/v1",
+    "stream": true,
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Hello"
+      }
+    ]
+  }'
+```
+
+#### Method Three
+
+```bash
+curl http://localhost:3099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer https://cloud.dify.ai/v1" \
+  -X POST \
+  -d '{
+    "model": "dify|app-xxxx|Chat",
+    "stream": true,
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Hello"
+      }
+    ]
+  }'
+```
+
+### Image Chat Examples
+
+#### Method One
 
 ```bash
 curl http://localhost:3099/v1/chat/completions \
@@ -197,11 +285,75 @@ curl http://localhost:3099/v1/chat/completions \
   }'
 ```
 
+#### Method Two
+
+```bash
+curl http://localhost:3099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer app-xxxx" \
+  -X POST \
+  -d '{
+    "model": "dify|Chat|https://cloud.dify.ai/v1",
+    "stream": true,
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          "Please analyze this image.",
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "https://example.com/image.jpg"
+            }
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+#### Method Three
+
+```bash
+curl http://localhost:3099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer https://cloud.dify.ai/v1" \
+  -X POST \
+  -d '{
+    "model": "dify|app-xxxx|Chat",
+    "stream": true,
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          "Please analyze this image.",
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "https://example.com/image.jpg"
+            }
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+---
+
+## Notes
+
+- **Parameter Replacement**: Please replace parameters such as `https://cloud.dify.ai/v1`, `app-xxxx`, `BOT_TYPE`, etc. with your actual values.
+- **`BOT_TYPE`**: Available values are `Chat`, `Completion`, or `Workflow`, choose according to your application type.
+- **`INPUT_VARIABLE` and `OUTPUT_VARIABLE`**: Mainly used for `Workflow` type applications, can be omitted if not needed.
+- **`stream` Parameter**: If you need streaming responses, set `stream` to `true`, otherwise you can omit it or set it to `false`.
+- **Security**: Keep your `API_KEY` secure and do not share it with unauthorized individuals.
+
 ---
 
 ## Development Guide
 
-### Project Structure
+### Directory Structure
 
 ```
 .
@@ -211,11 +363,11 @@ curl http://localhost:3099/v1/chat/completions \
 │   ├── completionHandler.js # Completion handler
 │   ├── utils.js           # Utility functions
 │   └── workflowHandler.js  # Workflow handler
-├── config/            # Configuration directory
+├── config/            # Configuration files
 │   └── logger.js         # Logger configuration
 ├── public/            # Static files directory
 │   └── index.html        # API documentation page
-├── ecosystem.config.js # PM2 configuration file
+├── ecosystem.config.cjs # PM2 configuration file
 ├── nodemon.json       # Nodemon configuration file
 └── package.json       # Project configuration file
 ```
@@ -249,26 +401,30 @@ The project uses nodemon for hot reloading in development mode:
 ### Development Process
 
 1. Clone the project
+
 ```bash
 git clone https://github.com/onenov/Dify2OpenAI.git
 cd Dify2OpenAI
 ```
 
 2. Install dependencies
+
 ```bash
 npm install
 ```
 
 3. Start development server
+
 ```bash
 npm run dev
 ```
 
 4. Production deployment
+
 ```bash
 npm start
 # or using PM2
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.cjs
 ```
 
 ### Code Style
@@ -285,16 +441,19 @@ pm2 start ecosystem.config.js
 ### Log Configuration
 
 By default:
+
 - Production environment (`npm start`): Only logs error level, console output only
 - Development environment (`npm run dev`): Logs all levels, outputs to both console and file
 
 Log files are stored in the `logs` directory:
+
 - `combined-%DATE%.log`: Logs of all levels
 - `error-%DATE%.log`: Error level logs only
 
 ### Log Levels
 
 Supports the following log levels (in order of severity):
+
 - `error`: Error messages
 - `warn`: Warning messages
 - `info`: General information
@@ -303,12 +462,14 @@ Supports the following log levels (in order of severity):
 ### Log Format
 
 Each log entry contains:
+
 - Timestamp
 - Log level
 - Detailed message
 - Metadata (if any)
 
 Example:
+
 ```json
 {
   "level": "info",
@@ -321,6 +482,7 @@ Example:
 ### Log Rotation
 
 Log files are automatically rotated according to:
+
 - Daily rotation (new file each day)
 - Maximum file size of 20MB
 - Keep logs for the last 14 days
@@ -329,6 +491,7 @@ Log files are automatically rotated according to:
 ### Performance Optimization
 
 For performance, the logging system:
+
 - Uses buffered writing to reduce I/O operations
 - Writes asynchronously to avoid blocking the main thread
 - Automatically cleans up expired logs to control disk usage

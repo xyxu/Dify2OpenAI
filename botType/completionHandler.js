@@ -3,7 +3,7 @@
 import fetch from "node-fetch";
 import { PassThrough } from "stream";
 import { log } from '../config/logger.js';
-import { logApiCall, generateId } from "./utils.js";
+import { logApiCall, generateId, getFileExtension, getFileType } from "./utils.js";
 
 // 上传文件到 Dify，获取文件 ID
 async function uploadFileToDify(base64Data, config, userId) {
@@ -99,38 +99,61 @@ async function handleRequest(req, res, config, requestId, startTime) {
       body: data,
     });
 
-    const lastMessage = messages[messages.length - 1];
     const userId = "apiuser"; // 如果可用，替换为实际的用户 ID
 
-    // 处理消息内容
-    if (Array.isArray(lastMessage.content)) {
-      for (const content of lastMessage.content) {
-        if (content.type === "text") {
-          queryString += content.text + "\n";
-        } else if (content.type === "image_url") {
-          // 检查是否提供了 'url' 字段
-          if (content.image_url && content.image_url.url) {
-            // 如果有 URL，直接添加到 files，使用 transfer_method 为 'remote_url'
-            files.push({
-              type: "image",
-              transfer_method: "remote_url",
-              url: content.image_url.url,
-            });
-          } else {
-            // 如果没有 URL，可能是 base64 数据，需要上传
-            // 上传图片并获取文件 ID
-            const fileId = await uploadFileToDify(
-              content.image_url.url, // 假设此处提供的是 base64 数据
-              config,
-              userId
-            );
-            files.push({
-              type: "image",
-              transfer_method: "local_file",
-              upload_file_id: fileId,
-            });
+    // 第一步：先扫描所有消息中的图片内容
+    log("info", "开始扫描所有消息中的图片", { requestId, messageCount: messages.length });
+    for (const message of messages) {
+      if (Array.isArray(message.content)) {
+        for (const content of message.content) {
+          if (content.type === "image_url" && content.image_url && content.image_url.url) {
+            const imageUrl = content.image_url.url;
+            
+            // 检查URL是否为base64数据
+            if (imageUrl.startsWith('data:')) {
+              // 是base64数据，需要上传
+              const fileExt = getFileExtension(imageUrl);
+              const fileType = getFileType(fileExt);
+              log("info", "检测到base64数据，准备上传", { requestId, fileType, fileExt });
+              const fileId = await uploadFileToDify(
+                imageUrl,
+                config,
+                userId
+              );
+              files.push({
+                type: fileType,
+                transfer_method: "local_file",
+                upload_file_id: fileId,
+              });
+            } else {
+              // 是真正的URL，直接使用remote_url方式
+              const fileExt = getFileExtension(imageUrl);
+              const fileType = getFileType(fileExt);
+              log("info", "检测到远程文件URL", { requestId, url: imageUrl.substring(0, 30) + '...', fileType, fileExt });
+              files.push({
+                type: fileType,
+                transfer_method: "remote_url",
+                url: imageUrl,
+              });
+            }
           }
         }
+      }
+    }
+
+    // 第二步：从最后一条消息中提取查询文本
+    const lastMessage = messages[messages.length - 1];
+    if (Array.isArray(lastMessage.content)) {
+      for (const content of lastMessage.content) {
+        // 处理字符串类型的内容（OpenAI格式）
+        if (typeof content === "string") {
+          queryString += content + "\n";
+        } 
+        // 处理对象类型的内容
+        else if (content.type === "text") {
+          queryString += content.text + "\n";
+        }
+        // 注意：这里不再重复处理image_url，因为已经在上面处理过了
       }
       queryString = queryString.trim(); // 去除末尾的换行符
     } else {
