@@ -43,7 +43,7 @@ npm install
 
 ```bash
 # 直接使用PM2命令
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.cjs
 
 # 或使用npm脚本
 npm run pm2:start
@@ -214,7 +214,7 @@ Authorization: Bearer https://cloud.dify.ai/v1
 │   └── logger.js         # 日志配置
 ├── public/            # 静态文件目录
 │   └── index.html        # API 文档页面
-├── ecosystem.config.js # PM2 配置文件
+├── ecosystem.config.cjs # PM2 配置文件
 ├── nodemon.json       # Nodemon 配置文件
 └── package.json       # 项目配置文件
 ```
