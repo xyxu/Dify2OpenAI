@@ -275,7 +275,6 @@ async function handleRequest(req, res, config, requestId, startTime) {
               } else {
                 result = outputs;
               }
-              result = String(result);
 
               const chunkId = `chatcmpl-${Date.now()}`;
               const chunkCreated = chunkObj.created_at;
@@ -375,7 +374,6 @@ async function handleRequest(req, res, config, requestId, startTime) {
             } else {
               result = outputs;
             }
-            result = String(result);
             usageData = {
               total_tokens: chunkObj.data.total_tokens || 110,
             };
@@ -407,7 +405,7 @@ async function handleRequest(req, res, config, requestId, startTime) {
                 index: 0,
                 message: {
                   role: "assistant",
-                  content: result.trim(),
+                  content: result,
                 },
                 logprobs: null,
                 finish_reason: "stop",
